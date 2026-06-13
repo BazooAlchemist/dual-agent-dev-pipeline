@@ -14,7 +14,7 @@
 | 代码简化 | `simplify` 命令 | 自动化代码简化与冗余清理 |
 | 代码审查 | `review` 命令 / `gstack:review` | 当前 diff 的自动化审查 |
 | 安全扫描 | `semgrep` MCP 工具 | SAST 扫描（需配置 MCP server） |
-| 外部独立审计 | Adobe Codex (via codex-bridge) | 不同模型提供商的独立 agent 做交付审计 |
+| 外部独立审计 | Codex-compatible external auditor (via codex-bridge) | 不同模型提供商的独立 agent 做交付审计 |
 | 并行分派 | superpowers:dispatching-parallel-agents | 将独立子任务分派给多个 agent |
 | 交付自动化 | gstack:ship | 分支清理、PR 创建、合并的自动化 |
 | 完成验证 | superpowers:verification-before-completion | 交付前的全维度验证检查 |

@@ -72,19 +72,30 @@ description: Use when starting a new project, feature, or non-trivial task where
 
 **Gate ②（交付审计）**：review + simplify + semgrep + verification 全部完成后、ship 之前。高/中影响变更触发。
 
-**Bridge message format:**
+**Bridge message format:** canonical request schema is `schema/audit-request.schema.json`; canonical response schema is `schema/audit-response.schema.json`.
+
 ```json
 {
-  "audit_type": "architecture | code",
-  "artifacts": ["file paths"],
-  "context": "Self-contained — external auditor cannot see your session history",
-  "previous_round": "R1 feedback + resolution notes (R2+)"
+  "type": "audit_request",
+  "gate": "gate_2",
+  "version": "1.0",
+  "round": 1,
+  "payload": {
+    "context": {
+      "task": "Self-contained task description — external auditor cannot see your session history",
+      "risk_level": "medium",
+      "impact_domains": ["Skill / workflow creation"],
+      "files_changed": ["examples/dev-pipeline-skill.md"]
+    },
+    "artifacts": {
+      "diff": "Current diff or path to diff artifact",
+      "verification_log": "Verification command output"
+    }
+  }
 }
 ```
 
-<!-- TODO(用户): 修改 verdict schema 为你的外部审计 agent 实际返回值格式。 -->
-
-**External auditor returns:** `{round, verdict: PASS|BLOCKED, findings: [{severity, file, line, description, fix}]}`
+**External auditor returns:** `schema/audit-response.schema.json` with `result.verdict = PASS|BLOCKED` and findings carrying `severity`, `category`, `location`, `description`, and `suggestion`.
 
 ## The 3-Layer Architecture
 

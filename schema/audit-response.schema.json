@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/BazooAlchemist/dual-agent-dev-pipeline/schema/audit-response.schema.json",
+  "title": "Dual-Agent Audit Response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "gate", "version", "round", "result"],
+  "properties": {
+    "type": {
+      "const": "audit_response"
+    },
+    "gate": {
+      "enum": ["gate_1", "gate_2"]
+    },
+    "version": {
+      "const": "1.0"
+    },
+    "round": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verdict", "findings", "summary"],
+      "properties": {
+        "verdict": {
+          "enum": ["PASS", "BLOCKED"]
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["severity", "category", "location", "description", "suggestion"],
+            "properties": {
+              "severity": {
+                "enum": ["BLOCKER", "FIX", "NOTE"]
+              },
+              "category": {
+                "enum": ["architecture", "security", "correctness", "consistency", "completeness"]
+              },
+              "location": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              },
+              "suggestion": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

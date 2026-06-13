@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/BazooAlchemist/dual-agent-dev-pipeline/schema/audit-request.schema.json",
+  "title": "Dual-Agent Audit Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "gate", "version", "round", "payload"],
+  "properties": {
+    "type": {
+      "const": "audit_request"
+    },
+    "gate": {
+      "enum": ["gate_1", "gate_2"]
+    },
+    "version": {
+      "const": "1.0"
+    },
+    "round": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["context", "artifacts"],
+      "properties": {
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["task", "risk_level", "impact_domains", "files_changed"],
+          "properties": {
+            "task": {
+              "type": "string",
+              "minLength": 1
+            },
+            "risk_level": {
+              "enum": ["high", "medium", "low"]
+            },
+            "impact_domains": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "files_changed": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "artifacts": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "design_doc": {
+              "type": "string"
+            },
+            "diff": {
+              "type": "string"
+            },
+            "test_results": {
+              "type": "string"
+            },
+            "verification_log": {
+              "type": "string"
+            }
+          },
+          "anyOf": [
+            {
+              "required": ["design_doc"]
+            },
+            {
+              "required": ["diff"]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

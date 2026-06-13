@@ -1,8 +1,8 @@
 # Codex Bridge — Reference Deployment
 
-> This is a **reference implementation** of a Codex-based external audit agent bridge, designed to work with the dual-agent audit protocol defined in `core/04-dual-agent-audit.md`. Tested on 1 environment (macOS 15 + Codex CLI 0.x). Not guaranteed for all macOS or Codex versions.
+> This is a **reference deployment guide** for a Codex-based external audit agent bridge, designed to work with the dual-agent audit protocol defined in `core/04-dual-agent-audit.md`. Tested on 1 environment (macOS 15 + Codex CLI 0.x). Not guaranteed for all macOS or Codex versions.
 
-This README covers the manual deployment steps. Automated scripts in this directory (`setup-codex-bridge.sh`, `health-check.sh`) are provided as reference only.
+This README covers the manual deployment steps. Automated scripts in this directory (`setup-codex-bridge.sh`, `health-check.sh`) are provided as reference only. The canonical message contracts are `schema/audit-request.schema.json` and `schema/audit-response.schema.json`.
 
 ---
 
@@ -27,7 +27,7 @@ The bridge worker communicates with Codex by placing and polling task files in a
 
 Approximately 10-15 minutes.
 
-### Step 1: Clone or locate the AgentFoundry bridge worker
+### Step 1: Clone or locate a bridge worker
 
 ```bash
 # If you have AgentFoundry installed:
@@ -37,7 +37,7 @@ ls $HOME/AI/AgentFoundry/setup/codex-bridge/worker.mjs
 # git clone <your-agentfoundry-repo> $HOME/AI/AgentFoundry
 ```
 
-The bridge worker is the script that launchd will run. If you do not have AgentFoundry, you can write a simple polling script that watches a directory and calls `codex` on incoming task files.
+The bridge worker is the script that launchd will run. This repository does not bundle that worker; it provides the launchd template, directory layout, health checks, and canonical schemas. If you do not have AgentFoundry, write or supply a polling script that watches a directory, validates `schema/audit-request.schema.json`, calls `codex` on incoming task files, and writes responses that match `schema/audit-response.schema.json`.
 
 ### Step 2: Create the bridge directories
 
@@ -69,7 +69,8 @@ echo 'export CODEX_BRIDGE_ROOT="$HOME/.openclaw/bridges/codex"' >> $HOME/.zshrc
 Copy the reference plist template from this directory:
 
 ```bash
-cp "$(dirname "$0")/codex-bridge-launchd.plist" $HOME/Library/LaunchAgents/ai.openclaw.codex-bridge.plist
+install -d "$HOME/Library/LaunchAgents"
+install -m 0644 deploy/codex-bridge/codex-bridge-launchd.plist "$HOME/Library/LaunchAgents/ai.openclaw.codex-bridge.plist"
 ```
 
 Edit the plist to replace the following placeholders:
@@ -88,7 +89,7 @@ launchctl bootstrap gui/$(id -u) $HOME/Library/LaunchAgents/ai.openclaw.codex-br
 
 ### Step 6: (Optional) Configure Claude Code to use the bridge
 
-In your `~/.claude/settings.json`, add a post-tool or pre-commit hook that writes audit requests to the inbox directory. See `examples/settings.json.example` for a template, and `core/04-dual-agent-audit.md` for the message schema.
+In your `~/.claude/settings.json`, add a post-tool or pre-commit hook that writes audit requests to the inbox directory. See `examples/settings.json.example` for a template, `core/04-dual-agent-audit.md` for the protocol, and `schema/audit-request.schema.json` / `schema/audit-response.schema.json` for the exact message contracts.
 
 ---
 

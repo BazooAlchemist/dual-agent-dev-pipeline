@@ -6,7 +6,7 @@
 
 ## What This Is
 
-The Dual-Agent Dev Pipeline is a methodology and reference implementation for
+The Dual-Agent Dev Pipeline is a methodology and reference deployment guide for
 structured AI-assisted development on macOS: 12 pipeline steps, 3-layer
 architecture, and a dual-agent audit protocol that catches what a single AI
 can't see itself doing wrong.
@@ -53,7 +53,8 @@ Browse the layout:
 Copy the example skill file into Claude Code's skill directory:
 
 ```bash
-cp examples/dev-pipeline-skill.md ~/.claude/skills/dev-pipeline/SKILL.md
+mkdir -p ~/.claude/skills/dev-pipeline
+install -m 0644 examples/dev-pipeline-skill.md ~/.claude/skills/dev-pipeline/SKILL.md
 ```
 
 Then verify the skill is loadable:
@@ -66,7 +67,7 @@ If the file is present but the skill doesn't appear, restart Claude Code.
 
 **Done with Step 2 when:** `claude skills list` shows a `dev-pipeline` entry.
 
-> **If you don't have a skills directory yet:** create `~/.claude/skills/dev-pipeline/` first.
+> **If you already customized this skill:** copy to a temporary path first, diff it against your existing file, and merge the pipeline sections manually.
 
 ---
 
@@ -76,7 +77,8 @@ Copy the example governance rules into your project memory or a location your
 external audit agent can reference:
 
 ```bash
-cp examples/governance-dual-audit.md ~/.claude/projects/<your-project>/memory/governance-dual-audit.md
+mkdir -p ~/.claude/projects/<your-project>/memory
+install -m 0644 examples/governance-dual-audit.md ~/.claude/projects/<your-project>/memory/governance-dual-audit.md
 ```
 
 Or place it wherever your audit agent reads its rules (e.g., workspace shared
@@ -95,8 +97,15 @@ Code and your external audit agent.
 Reference the example CLAUDE.md skeleton to build or update your own:
 
 ```bash
-cp examples/CLAUDE.md.example ~/.claude/CLAUDE.md
-# ... then edit ~/.claude/CLAUDE.md to replace all <your-*> placeholders
+mkdir -p ~/.claude
+if [ -f ~/.claude/CLAUDE.md ]; then
+  cp ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.before-dev-pipeline
+  install -m 0644 examples/CLAUDE.md.example ~/.claude/CLAUDE.md.dev-pipeline.example
+  echo "Existing CLAUDE.md preserved. Merge ~/.claude/CLAUDE.md.dev-pipeline.example into ~/.claude/CLAUDE.md."
+else
+  install -m 0644 examples/CLAUDE.md.example ~/.claude/CLAUDE.md
+fi
+# ... then edit the target file to replace all <your-*> placeholders
 ```
 
 The skeleton includes:
@@ -133,6 +142,7 @@ To be thorough, run the verification command from the plan:
 FILE=~/.claude/skills/dev-pipeline/SKILL.md
 test -f "$FILE" && echo "Skill OK" || echo "Skill MISSING"
 grep "dev-pipeline" ~/.claude/skills/dev-pipeline/SKILL.md >/dev/null 2>&1 && echo "Content OK"
+bash scripts/validate-repo.sh
 ```
 
 **Done with Step 5 when:** Claude initiates at least a basic risk assessment

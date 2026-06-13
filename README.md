@@ -1,12 +1,12 @@
 # Dual-Agent Dev Pipeline
 
-> A battle-tested AI-assisted development pipeline methodology + Codex reference implementation for Claude Code CLI.
+> A field-tested AI-assisted development pipeline methodology + Codex bridge reference deployment for Claude Code CLI.
 
 ## Bilingual Summary / 中英双语摘要
 
-**EN:** This repository provides a structured development pipeline designed specifically for AI-assisted coding workflows. It contains 18 files across 4 layers: core methodology (tool-agnostic), adapter guides (tool-specific mappings), annotated configuration examples, and a Codex bridge reference implementation for cross-model audit. The pipeline prevents the class of errors LLMs are most prone to — skipping diagnosis, over-engineering, ignoring the root cause — by enforcing 12 steps guarded by two independent audit gates. Each step is designed to catch one category of error; skipping one means accepting that category.
+**EN:** This repository provides a structured development pipeline designed specifically for AI-assisted coding workflows. It contains methodology, adapter guides, annotated configuration examples, canonical audit schemas, and a Codex bridge reference deployment for cross-model audit. The pipeline reduces the class of errors LLMs are most prone to — skipping diagnosis, over-engineering, ignoring the root cause — by enforcing 12 steps guarded by two independent audit gates. Each step is designed to catch one category of error; skipping one means accepting that category.
 
-**CN:** 本仓库提供一套专门为 AI 辅助编码设计的分阶段开发流水线。共 18 个文件、4 个层级：核心方法论（与工具无关的通用规则）、适配器指南（具体工具的能力映射）、带注释的配置示例、以及基于 Codex 的双模型互审参考实现。该流水线通过 12 个步骤 + 两道独立审计闸门，系统性防范 LLM 最常见的错误类型——跳过诊断、过度设计、忽视根因。每步防一类错误，跳一步 = 接受该类错误。
+**CN:** 本仓库提供一套专门为 AI 辅助编码设计的分阶段开发流水线：核心方法论（与工具无关的通用规则）、适配器指南（具体工具的能力映射）、带注释的配置示例、canonical audit schema、以及基于 Codex 的双模型互审参考部署。该流水线通过 12 个步骤 + 两道独立审计闸门，系统性降低 LLM 最常见的错误类型——跳过诊断、过度设计、忽视根因。每步防一类错误，跳一步 = 接受该类错误。
 
 ## Repository Structure
 
@@ -14,6 +14,8 @@
 dual-agent-dev-pipeline/
 |
 |-- README.md               Entry point (this file)
+|-- AGENTS.md               Repo-local agent workflow rules
+|-- POLISHING.md            Repository polishing plan and next steps
 |-- PHILOSOPHY.md           Design philosophy & why this pipeline exists
 |-- QUICKSTART.md           5-step minimal onboarding (~30 min)
 |
@@ -35,7 +37,7 @@ dual-agent-dev-pipeline/
 |   |-- governance-dual-audit.md
 |   |-- settings.json.example
 |
-|-- deploy/                 Runtime reference implementations ([reference] — tested on 1 env)
+|-- deploy/                 Runtime reference deployment helpers ([reference] — tested on 1 env)
 |   |-- codex-bridge/
 |       |-- README.md                   Manual deployment steps
 |       |-- setup-codex-bridge.sh       [reference] Setup script
@@ -45,6 +47,12 @@ dual-agent-dev-pipeline/
 |-- appendix/               Non-normative appendices
 |   |-- real-world-cases.md            Anonymized real-world case studies (3 sub-cases)
 |   |-- file-trigger-examples.md       File-based trigger examples (illustrative only)
+|-- schema/                 Canonical JSON schemas for audit bridge messages
+|   |-- audit-request.schema.json
+|   |-- audit-response.schema.json
+|
+|-- scripts/
+|   |-- validate-repo.sh              Repository validation checks
 ```
 
 ## Three Entry Paths / 三条入口
@@ -59,7 +67,7 @@ Ideal for architects and team leads evaluating whether this approach fits their 
 `README` -> `QUICKSTART.md` -> `examples/CLAUDE.md.example` -> `examples/governance-dual-audit.md`
 Ideal for individual developers ready to adopt the pipeline immediately.
 
-**Entry C — "I want to deploy the full Codex reference implementation"**
+**Entry C — "I want to deploy the Codex bridge reference deployment"**
 Entry B first -> `deploy/codex-bridge/README.md` -> (optional) `deploy/codex-bridge/*.sh`
 Adds the cross-model audit agent for automated Gate audits.
 
@@ -85,11 +93,12 @@ See [QUICKSTART.md](./QUICKSTART.md) for a 5-step minimal onboarding path (~30 m
 - AI-assisted development pipeline methodology for Claude Code CLI + Codex
 - Risk tier classification and dual-agent cross-audit protocol
 - Annotated configuration templates (CLAUDE.md, settings.json, governance rules, dev-pipeline skill)
-- Codex bridge reference implementation for macOS deployment
+- Codex bridge reference deployment for macOS
+- Canonical request/response schema for external audit messages
 
 **Out of scope / 不解决什么:**
 - This is **not** a general-purpose CI/CD pipeline. It is specifically designed for AI-assisted code generation workflows.
-- The deploy scripts are **reference implementations** tested on a single environment. They may require adjustment for your specific setup.
+- The deploy scripts are **reference deployment helpers** tested on a single environment. They assume you provide or adapt the actual bridge worker.
 - The pipeline does **not** replace security audits, unit test coverage requirements, or manual code reviews.
 - Non-macOS platform deployment is not covered. Windows and Linux users will need to adapt the launchd plist and shell scripts to their platform equivalents.
 - The methodology does **not** guarantee zero bugs. It reduces the probability of LLM-pattern errors through systematic gating.

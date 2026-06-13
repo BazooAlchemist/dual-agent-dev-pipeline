@@ -24,53 +24,65 @@
 1. **已部署 Codex bridge**：能够通过 inbox/processing/done 目录结构向 Codex 发送任务并收取结果。部署步骤见 `deploy/codex-bridge/README.md`。
 2. **Codex 可访问目标仓库**：Codex 需要运行在能够读取目标仓库代码的环境中。
 3. **审计 agent 的模型配置**：外部审计 agent 应使用与执行 agent 不同的模型提供商（例如执行用 Claude → 审计用 GPT-4o）。
-4. **桥接消息格式一致**：发起审计的 message JSON schema 必须符合 `core/04-dual-agent-audit.md` 中定义的核心结构。
+4. **桥接消息格式一致**：发起审计的 message JSON schema 必须符合 `schema/audit-request.schema.json`；审计响应必须符合 `schema/audit-response.schema.json`。
 
 ### 发起审计
 
-通过 bridge 发送审计请求。message JSON 核心结构如下（完整 schema 见 `core/04-dual-agent-audit.md`）：
+通过 bridge 发送审计请求。message JSON 核心结构如下（完整 schema 见 `schema/audit-request.schema.json`）：
 
 ```json
 {
-  "messageType": "audit-request",
-  "auditGate": "gate-1 | gate-2",
-  "convergenceRound": 1,
-  "context": {
-    "taskDescription": "本次任务的一句话描述",
-    "changedFiles": ["src/handler.py", "src/schema.json"],
-    "changedCapabilityDomains": ["桥接协议", "业务逻辑处理"],
-    "riskTier": "high | mid | low",
-    "planSummary": "架构/计划的摘要（Gate ①）或交付物变更摘要（Gate ②）"
+  "type": "audit_request",
+  "gate": "gate_1",
+  "version": "1.0",
+  "round": 1,
+  "payload": {
+    "context": {
+      "task": "本次任务的一句话描述",
+      "risk_level": "high",
+      "impact_domains": ["桥接协议", "业务逻辑处理"],
+      "files_changed": ["src/handler.py", "src/schema.json"]
+    },
+    "artifacts": {
+      "design_doc": "架构/计划的摘要或文档路径"
+    }
   }
 }
 ```
 
 ### 解读结果
 
-审计结果通过 bridge 返回，使用以下判定 schema：
+审计结果通过 bridge 返回，使用 `schema/audit-response.schema.json` 定义的判定 schema：
 
 | 字段 | 值 | 含义 |
 |------|-----|------|
-| `verdict` | `PASS` | 审计通过，无需修改 |
-| `verdict` | `BLOCKED` | 审计不通过，需要修改 |
-| `items[].type` | `BLOCKER` | 必须修复才能继续 |
-| `items[].type` | `FIX` | 建议修复（非阻塞） |
-| `items[].type` | `NOTE` | 观察记录（无需修复） |
+| `result.verdict` | `PASS` | 审计通过，无需修改 |
+| `result.verdict` | `BLOCKED` | 审计不通过，需要修改 |
+| `result.findings[].severity` | `BLOCKER` | 必须修复才能继续 |
+| `result.findings[].severity` | `FIX` | 建议修复（非阻塞） |
+| `result.findings[].severity` | `NOTE` | 观察记录（无需修复） |
 
 每条审计项包含定位描述和修复建议：
 
 ```json
 {
-  "verdict": "BLOCKED",
-  "items": [
-    {
-      "type": "BLOCKER",
-      "location": "src/handler.py:42",
-      "description": "缺少输入校验，未处理空值情况",
-      "suggestion": "添加 None 检查和默认值回退逻辑"
-    }
-  ],
-  "summary": "发现 1 个 BLOCKER，需要修复后重新提交审计"
+  "type": "audit_response",
+  "gate": "gate_2",
+  "version": "1.0",
+  "round": 1,
+  "result": {
+    "verdict": "BLOCKED",
+    "findings": [
+      {
+        "severity": "BLOCKER",
+        "category": "correctness",
+        "location": "src/handler.py:42",
+        "description": "缺少输入校验，未处理空值情况",
+        "suggestion": "添加 None 检查和默认值回退逻辑"
+      }
+    ],
+    "summary": "发现 1 个 BLOCKER，需要修复后重新提交审计"
+  }
 }
 ```
 
@@ -87,7 +99,7 @@
 | **R3** | 追加修复：执行 agent 继续修复，第三方再次审查 | PASS → 继续；BLOCKED → 进入 R4 |
 | **R4** | 最终判定：仍 BLOCKED 则升级到用户决策 | 用户决定：放行或回退 |
 
-每轮审计请求的 `convergenceRound` 字段递增。到达 R4 仍然 BLOCKED 时，不再自动迭代，等待人工判定。
+每轮审计请求的 `round` 字段递增。到达 R4 仍然 BLOCKED 时，不再自动迭代，等待人工判定。
 
 ---
 

@@ -173,17 +173,30 @@ deployment required:
 
 ## 6. Bridge Message JSON Schema
 
-Use this schema to dispatch audit tasks to the external audit agent:
+Canonical schema files:
+
+- Request: `schema/audit-request.schema.json`
+- Response: `schema/audit-response.schema.json`
+
+Use this request shape to dispatch audit tasks to the external audit agent:
 
 ```json
 {
   "type": "audit_request",
+  "gate": "gate_2",
   "version": "1.0",
+  "round": 1,
   "payload": {
-    "task": "<description of the change to audit>",
-    "context": "<architecture review output, diff, or implementation plan>",
-    "audit_type": "architecture" | "delivery",
-    "round": 1 | 2 | 3 | 4
+    "context": {
+      "task": "<description of the change to audit>",
+      "risk_level": "medium",
+      "impact_domains": ["Skill / workflow creation"],
+      "files_changed": ["examples/dev-pipeline-skill.md"]
+    },
+    "artifacts": {
+      "diff": "<current diff>",
+      "verification_log": "<verification command output>"
+    }
   }
 }
 ```
@@ -193,14 +206,18 @@ Expected response schema:
 ```json
 {
   "type": "audit_response",
+  "gate": "gate_2",
   "version": "1.0",
-  "payload": {
-    "status": "PASS" | "BLOCKED",
+  "round": 1,
+  "result": {
+    "verdict": "PASS",
     "findings": [
       {
-        "severity": "BLOCKER" | "FIX" | "NOTE",
+        "severity": "NOTE",
+        "category": "completeness",
+        "location": "examples/dev-pipeline-skill.md",
         "description": "<finding description>",
-        "file": "<optional: file path>"
+        "suggestion": "<suggested follow-up>"
       }
     ],
     "summary": "<summary verdict>"
@@ -221,7 +238,7 @@ Any agent serving as the external auditor MUST satisfy:
 | Requirement | Detail |
 |-------------|--------|
 | Different model provider | Must not use the same model provider as the execution agent |
-| Structured output | Must conform to the response schema above |
+| Structured output | Must conform to `schema/audit-response.schema.json` |
 | Round-trip support | Must understand R1-R4 round semantics |
 | Convergence awareness | Must respect the 4-round cap and escalation rule |
 | Catch-up audit support | Must accept catch-up audit tasks post-deployment (24h window) |

@@ -209,6 +209,8 @@
 
 以下定义外部审计 agent 的最小接口。任何满足此接口的独立 agent 均可作为外部审计方。
 
+**Canonical schema:** 审计请求以 `schema/audit-request.schema.json` 为准，审计响应以 `schema/audit-response.schema.json` 为准。下方 JSON 只是可读示例；实现与配置不得自行发明字段名。
+
 ### 发起审计
 
 执行 agent 向外部审计 agent 发送审计请求，包含以下字段：
@@ -218,6 +220,7 @@
   "type": "audit_request",
   "gate": "gate_1|gate_2",
   "version": "1.0",
+  "round": 1,
   "payload": {
     "context": {
       "task": "审计任务描述",
@@ -244,6 +247,7 @@
   "type": "audit_response",
   "gate": "gate_1|gate_2",
   "version": "1.0",
+  "round": 1,
   "result": {
     "verdict": "PASS|BLOCKED",
     "findings": [
