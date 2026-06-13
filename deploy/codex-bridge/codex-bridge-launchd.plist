@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>ai.openclaw.codex-bridge</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/path/to/node</string>
+        <string>&lt;your-agentfoundry-root&gt;/setup/codex-bridge/worker.mjs</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>&lt;your-home&gt;/.openclaw/logs/codex-bridge.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>&lt;your-home&gt;/.openclaw/logs/codex-bridge.err.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>HOME</key>
+        <string>&lt;your-home&gt;</string>
+        <key>AGENTFOUNDRY_ROOT</key>
+        <string>&lt;your-agentfoundry-root&gt;</string>
+    </dict>
+</dict>
+</plist>

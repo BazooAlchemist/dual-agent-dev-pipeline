@@ -1,0 +1,199 @@
+# CLAUDE.md.example — dev-pipeline 全局指令骨架
+#
+# 用途：这是 Claude Code 的全局指令文件 (~/.claude/CLAUDE.md) 模板。
+# 你需要做什么：
+# 1. 复制本文件到 ~/.claude/CLAUDE.md
+# 2. 将所有 `<your-*>` 占位符替换为你的实际路径
+# 3. 根据你的实际工具链增删技能绑定规则
+# 4. 中文字段是可选的；若你的模型不支持中文，全部替换为英文
+#
+# 验证方法：
+# - Claude Code 启动时无报错即语法正确
+# - 运行 `claude /help` 确认指令生效
+# - 执行一次测试任务，确认 dev-pipeline flow 被触发
+
+# Local CodeGraph Rules
+#
+# CodeGraph 是本地代码图谱索引工具。如果你不使用 CodeGraph，可删除此段。
+# 修改点：将 `<your-codegraph-path>` 替换为你的 CodeGraph 二进制路径。
+
+- Use `<your-codegraph-path>/codegraph` as the canonical CodeGraph binary for this machine.
+- For indexed code projects, check `codegraph status <project>` before relying on graph results.
+- Do not repeat `codegraph init` or a full `codegraph index` unless the project is uninitialized, the index is stale, or the user explicitly asks for it. Prefer `codegraph sync <project>` after ordinary source edits.
+- For code structure questions, call graph questions, impact analysis, and affected-test selection, prefer CodeGraph probes such as `context`, `callers`, `callees`, `impact`, and `affected`. Use `rg` for literal text, logs, docs, and non-code searches.
+- Cross-agent verification must compare current command/config, `codegraph status`, SQLite integrity checks, and at least one deterministic probe such as `callers`, `impact`, or `affected`. Do not trust chat transcripts alone.
+- Treat `.codegraph/` as a local cache. Do not commit it or manually edit database files.
+- CodeGraph is not runtime proof. Still verify with run artifacts, bridge events, logs, tests, and final delivered files.
+
+# CLAUDE.md — 硬上限 180 行
+#
+# 这是文件总行数硬限制（不含注释行）。如果你增加规则，必须删除等量旧内容。
+# 详情放 skill/memory 按需加载，此处只留触发条件 + 速查命令。
+
+**新增规则前先删等量旧内容。详情放 skill/memory 按需加载，此处只留触发条件 + 速查命令。**
+
+## 执行模式：Dynamic Workflows 优先
+#
+# 修改点：如果你的工作流（workflow）脚本路径不同，更新最后一行路径。
+
+| 任务类型 | 默认行为 |
+|---------|---------|
+| 写/改代码 | `Workflow` 工具，不直接 Edit/Write |
+| 代码审查 | `code-review-light` workflow 或同模式 |
+| 规划任务 | Workflow 内嵌 agent() 分派 |
+| 诊断/排障 | `systematic-debugging` skill，不走 Workflow |
+
+简单问答、读文件、运行命令、配置修改、launchd 重启 → 正常操作。
+Workflow 脚本：`<your-claude-config-dir>/workflows/{spike-sandbox,code-review-light}.js`
+
+## 工作环境
+#
+# 修改点：将此表替换为你实际使用的组件和路径。
+
+以 `<your-home>` 为中心的 AI 多 Agent 运维工作台：
+
+| 组件 | 路径 | 用途 |
+|------|------|------|
+| <your-control-plane-name> | `<your-control-plane-path>` | 控制面，消息入口 |
+| <your-execution-layer-name> | `<your-execution-layer-path>` | 执行面：bridge 代理 |
+| Claude Code | 当前 CLI | 文件操作、配置管理、紧急修复 |
+
+## 关键路径速查
+#
+# 修改点：将所有 `<your-*>` 占位符替换为实际路径。删除你用不到的条目。
+
+- `<your-config-file>` — 唯一配置（模型/provider/hook/消息入口）
+- `<your-gateway-log>` — 网关文本日志
+- `<your-json-log>` — 网关详细 JSON 日志（按日期滚动）
+- `<your-workspace-dir>/AGENTS.md` — 行为规则
+- `<your-workspace-dir>/hooks/` — Hook handler 目录
+- `<your-bridge-root>/` — Bridge inbox/processing/done/failed/archive
+- `<your-agents-root>/sessions/` — Session JSONL + lock 文件
+- `<your-bridge-scripts>` — Bridge 实现
+- `<your-bridge-workers>` — Bridge workers
+- `<your-bridge-protocol>` — Bridge 事件协议
+
+## 服务管理
+#
+# 修改点：将此块替换为你的实际服务管理命令（launchd、systemd 或其他）。
+
+```bash
+launchctl list | grep <your-service-label>       # 查看所有服务状态
+launchctl bootout gui/$(id -u)/<your-service-label>
+launchctl bootstrap gui/$(id -u) <your-plist-path>/<your-service>.plist
+```
+
+<your-gateway-name> 重启前先 `kill -9` 旧进程，否则可能 I/O error。启动后检查日志确认配置生效。
+
+## 配置编辑
+#
+# 修改点：将此块替换为你的配置编辑方式（JSON/YAML/Toml 等）。
+
+**永远用脚本编辑，不手动改 JSON**（`json.load` → 修改 → `json.dump`）。
+Hot reload：某些配置项可热加载，`thinkingDefault` 类不可热加载，需重启服务。
+
+## 调试卡死/超时
+#
+# 修改点：将此块替换为你的实际诊断命令。
+
+快速命令：
+
+```bash
+pgrep -fl "<your-service-pattern>"
+find <your-agents-root> -name "*.lock" -type f   # 有锁→cat PID→ps确认存活→rm
+tail -30 <your-gateway-log>
+grep -E "error|timeout|idle|starve" <your-gateway-log> | tail -20
+```
+
+常见故障模式：根据你的实际运行环境补充。
+
+## Bridge / Hook / Dreaming
+#
+# 如果不需要这三项概念，删除此段。
+
+**Bridge**：改 bridge 脚本后重启对应 worker（`launchctl bootout` + `bootstrap`）。
+日志：`<your-bridge-log-dir>/{bridge-name}-bridge.out.log`
+
+**Hook**：handler 放 `<your-hooks-dir>/{name}/handler.js`，在配置文件中注册即 hot reload。开发走 TDD（`<your-tdd-skill-name>`）
+
+**Dreaming**：<your-control-plane-name> 生成 `<your-dreaming-output-dir>/dreaming-*.md` 交付执行。执行前先 `<your-brainstorming-skill>` 审视方案假设。每条任务跑验证才标记完成，失败不静默跳过。
+
+## 技能绑定规则（Skill Binding）
+#
+# 修改点：
+# - 将此表替换为你的实际工具/技能绑定规则
+# - 技能名改为你的 Claude Code skill 的准确命名
+
+| 场景 | 技能 |
+|------|------|
+| 故障排查 | `<your-debugging-skill>` |
+| 需求探索 | `<your-brainstorming-skill>` → `<your-planning-skill>` |
+| Hook/Bridge 开发 | `<your-tdd-skill>` |
+| 声称完成前 | `<your-verification-skill>` |
+| 并行独立任务 | `<your-dispatch-skill>` |
+| 新项目/非平凡任务 | `<your-dev-pipeline-skill>` |
+
+优先级链：规划 `<brainstorming>→<plan-review>→<planning>` / 审查 `<review>` / 交付 `<ship>` / 安全 `<security-review>`
+
+## 开发流水线（dev-pipeline）
+#
+# 这是核心段：定义非平凡任务的 12 步开发流水线。
+# 修改点：
+# - 确保 `<your-dev-pipeline-skill>` 指向你部署的 skill
+# - 风险层级（低/中/高）可根据你的项目修改判定标准
+
+非平凡任务先加载 `<your-dev-pipeline-skill>` skill。流水线：
+
+| Phase | 步骤 | 技能 |
+|-------|------|------|
+| 启动 | 0 | `<workspace-audit>` |
+| 探索 | 1-2 | `<brainstorming>` → `<writing-plans>` |
+| 架构 | 3 | `<plan-eng-review>` |
+| 实现 | 4-6 | worktree → TDD → 写代码 |
+| 审查 | 7-9 | `<review>` → `<simplify>` → `<sast-scan>` |
+| 验证 | 10 | `<verification-before-completion>` |
+| 交付 | 11-12 | `<ship>` → `<finishing-branch>` |
+
+风险：**低**（脚本/配置）= 精简步骤，无互审 / **中**（hook/功能）= 全流水线 + 分级互审 / **高**（bridge/认证）= 全流水线 + Gate①+Gate②
+
+## 双代理互审（Dual-Agent Audit）
+#
+# 修改点：
+# - 将 `<your-external-auditor>` 替换为你的外部审计 agent 名称
+# - 影响分级可根据你的安全需求调整
+# - 参见 `<your-governance-rules-path>` 完整规则
+
+高（gateway/bridge/安全/治理削弱）= `<your-external-auditor>` 硬闸门
+中（hook/skill/业务逻辑）= `<your-external-auditor>` 优先 + 降级审查
+低（格式/脚本/文档）= 不需要
+
+## 并行 Agent 分派（Parallel Agent Dispatch）
+#
+# 修改点：将 `<your-bridge-example>` 替换为你的实际文件引用格式。
+# 2+ 独立任务 → 优先并行。共享文件 → 串行。
+
+**分派模板**（每项必填）：
+- `Task:` 一句话描述
+- `Scope:` 精确到文件路径
+- `Goal:` 完成标准，可验证
+- `Constraints:` 否定式约束 + 边界约束
+- `Expected output:` 返回格式
+- `Context:` 自包含上下文（agent 看不到会话历史）
+
+**集成检查**：逐份 review → `git diff` 查冲突 → 逐 agent 跑验证 → spot check
+
+**反模式**：
+- "修复所有测试" ✗ → "修 `<your-bridge-example>` 的 3 个超时测试" ✓
+- 无约束 ✗ → "只改 `<your-bridge-example>`，不动其他文件" ✓
+- 3 agent 同文件 ✗ → 合并或串行 ✓
+
+## 工具索引
+#
+# 修改点：替换为你实际使用的工具列表。
+
+你已安装的可用工具/技能列表（按场景索引）：
+- 搜索：`<your-search-tools>`（网络搜索），`<your-code-search>`（代码搜索）
+- 进程管理：`<your-process-tools>`
+- 文件/文档：`<your-file-tools>`
+
+当主要桥接系统不足时检查此列表。

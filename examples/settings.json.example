@@ -1,0 +1,18 @@
+{
+  "_comment": "这是 Claude Code settings.json 示例。复制到 ~/.claude/settings.json，按注释修改。",
+
+  "mcpServers": {
+    "semgrep": {
+      "command": "npx",
+      "args": ["-y", "@semgrep/mcp"]
+    }
+  },
+
+  "hooks": {
+    "_comment": "在此配置 pre-commit、post-tool 等 hook"
+  },
+
+  "permissions": {
+    "_comment": "在此配置 allow/deny 规则"
+  }
+}
