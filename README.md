@@ -2,6 +2,14 @@
 
 > A field-tested AI-assisted development pipeline methodology + Codex bridge reference deployment for Claude Code CLI.
 
+## Current skill release: 2.0.0 (2026-09-12)
+
+For current Astra task execution, use [the scoped dev-pipeline skill](examples/dev-pipeline-skill.md). It selects work by the actual goal and risk, with no mandatory twelve-step itinerary. Its entrypoint matches the local 2.0.0 skill; the final section describes optional legacy bridge integration.
+
+The original methodology below, `core/`, quickstart and bridge guides remain an **opt-in legacy dual-agent profile**, not default instructions for every task. Choosing the new skill does not weaken a project's explicitly adopted audit protocol or change its schemas. No service is deployed by this documentation release.
+
+See [OpenAI's guidance](https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra) and [CHANGELOG.md](CHANGELOG.md).
+
 ## Bilingual Summary / 中英双语摘要
 
 **EN:** This repository provides a structured development pipeline designed specifically for AI-assisted coding workflows. It contains methodology, adapter guides, annotated configuration examples, canonical audit schemas, and a Codex bridge reference deployment for cross-model audit. The pipeline reduces the class of errors LLMs are most prone to — skipping diagnosis, over-engineering, ignoring the root cause — by enforcing 12 steps guarded by two independent audit gates. Each step is designed to catch one category of error; skipping one means accepting that category.
